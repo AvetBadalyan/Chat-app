@@ -1,2 +1,10 @@
 @import 'tailwindcss';
 @plugin "daisyui";
+
+@config {
+  plugins: {
+    daisyui: {
+      themes: ["light", "dark", "coffee", "sunset", "cupcake", "bumblebee"]
+    }
+  }
+}
