@@ -1,1 +1,1 @@
-export const THEMES = ['light', 'dark', 'cupcake', 'bumblebee'];
+export const THEMES = ['light', 'dark'];
