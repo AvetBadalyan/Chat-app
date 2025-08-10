@@ -1,5 +1,7 @@
 # Full Stack Realtime Chat App
 
+**Live Demo:** [https://avetbook-chat-app.onrender.com](https://avetbook-chat-app.onrender.com)
+
 Highlights:
 
 - 🌟 Tech stack: MERN + Socket.io + TailwindCSS + Daisy UI
@@ -31,8 +33,20 @@ NODE_ENV=development
 npm run build
 ```
 
-### Start the app
-
-```shell
-npm start
+### Start development mode (backend + frontend together)
+```bash
+npm run dev
 ```
+
+- Backend runs at: [http://localhost:5001](http://localhost:5001)
+- Frontend runs at: [http://localhost:5173](http://localhost:5173) (Vite default port)
+
+---
+
+## Screenshots
+
+
+![Home Page](./screenshots/chat%20app%20screenshot0.jpg)
+![Home Page](./screenshots/chat%20app%20screenshot1.jpg)
+![Home Page](./screenshots/chat%20app%20screensho2.jpg)
+![Home Page](./screenshots/chat%20app%20screenshot3.jpg)
