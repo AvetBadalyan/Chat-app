@@ -48,5 +48,5 @@ npm run dev
 
 ![Home Page](./screenshots/chat%20app%20screenshot0.jpg)
 ![Home Page](./screenshots/chat%20app%20screenshot1.jpg)
-![Home Page](./screenshots/chat%20app%20screensho2.jpg)
+![Home Page](./screenshots/chat%20app%20screenshot2.jpg)
 ![Home Page](./screenshots/chat%20app%20screenshot3.jpg)
