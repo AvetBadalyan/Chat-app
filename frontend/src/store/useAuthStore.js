@@ -6,6 +6,10 @@ import { io } from 'socket.io-client';
 const BASE_URL =
   import.meta.env.MODE === 'development' ? 'http://localhost:5001' : '/';
 
+const getErrorMessage = error =>
+  error.response?.data?.message ||
+  'Cannot connect to the server. Make sure the backend is running.';
+
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
@@ -37,7 +41,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success('Account created successfully');
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(getErrorMessage(error));
     } finally {
       set({ isSigningUp: false });
     }
@@ -52,7 +56,7 @@ export const useAuthStore = create((set, get) => ({
 
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(getErrorMessage(error));
     } finally {
       set({ isLoggingIn: false });
     }
@@ -65,7 +69,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success('Logged out successfully');
       get().disconnectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(getErrorMessage(error));
     }
   },
 
@@ -77,7 +81,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success('Profile updated successfully');
     } catch (error) {
       console.log('error in update profile:', error);
-      toast.error(error.response.data.message);
+      toast.error(getErrorMessage(error));
     } finally {
       set({ isUpdatingProfile: false });
     }
