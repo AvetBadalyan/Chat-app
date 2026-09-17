@@ -21,7 +21,7 @@ app.use(
 	cors({
 		origin:
 			process.env.NODE_ENV === 'production'
-				? 'https://chat-app-avetbook.fly.dev'
+				? 'https://avetbook-chat-app.onrender.com'
 				: 'http://localhost:5173',
 		credentials: true
 	})
