@@ -63,7 +63,7 @@ const Sidebar = () => {
 				</div>
 			</div>
 
-			<div className="overflow-y-auto w-full py-3 px-2">
+			<div className="overflow-y-auto w-full py-3">
 				{sortedUsers.map(user => {
 					const unreadCount = unreadCounts[user._id] || 0
 
@@ -72,7 +72,7 @@ const Sidebar = () => {
 							key={user._id}
 							onClick={() => setSelectedUser(user)}
 							className={`
-                w-full p-3 flex items-center gap-3 rounded-lg
+                w-full p-3 flex items-center gap-3
                 transition-colors animate-fade-in
                 ${
 									selectedUser?._id === user._id
