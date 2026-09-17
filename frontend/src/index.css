@@ -56,16 +56,16 @@
 	--noise: 0;
 }
 
-/* Dark theme — deep slate with the same indigo-blue primary */
+/* Dark theme — balanced dark slate (not too dark, not too gray) */
 @plugin "daisyui/theme" {
 	name: 'avet-dark';
 	color-scheme: dark;
 
-	/* Backgrounds — layered warm-tinted dark slate */
-	--color-base-100: oklch(16% 0.02 263);
-	--color-base-200: oklch(13% 0.02 263);
-	--color-base-300: oklch(11% 0.015 263);
-	--color-base-content: oklch(90% 0.02 263);
+	/* Backgrounds — balanced dark palette like Discord/Slack */
+	--color-base-100: oklch(24% 0.015 263);
+	--color-base-200: oklch(20% 0.015 263);
+	--color-base-300: oklch(17% 0.012 263);
+	--color-base-content: oklch(93% 0.015 263);
 
 	/* Primary — same indigo, slightly brighter for dark bg legibility */
 	--color-primary: oklch(63% 0.24 263);

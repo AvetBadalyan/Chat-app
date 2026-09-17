@@ -2,8 +2,7 @@
 
 A real-time chat application built with the MERN stack and Socket.io.
 
-**[Live Demo](https://avetbook-chat-app.onrender.com)** — Try the demo account
-to explore features instantly.
+Clone and run locally to explore all features with the demo account.
 
 ![Avetbook Chat Interface](./screenshots/01-landing-dark.png)
 
@@ -15,7 +14,7 @@ to explore features instantly.
 - **Unread message badges** — Track unread conversations with visual indicators
 - **Online presence** — Live status showing who's currently online
 - **Image sharing** — Send images with Cloudinary storage integration
-- **32 themes** — A quick light/dark toggle plus a full DaisyUI theme picker,
+- **Dark & Light themes** — A quick toggle between custom dark and light themes,
   persisted to localStorage
 - **Secure authentication** — JWT-based auth with HTTP-only cookies
 - **Responsive design** — Mobile shows one panel at a time (contacts or the open
@@ -132,8 +131,8 @@ users.
 │   │   ├── middleware/      # Auth middleware
 │   │   ├── models/          # Mongoose schemas
 │   │   ├── routes/          # Express routes
-│   │   └── seeds/           # Database seeders
-│   └── index.js
+│   │   ├── seeds/           # Database seeders
+│   │   └── index.js         # Server entry point
 │
 ├── frontend/
 │   ├── src/
