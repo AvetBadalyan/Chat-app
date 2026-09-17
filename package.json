@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/AvetBadalyan/Chat-app#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "puppeteer": "^25.11.0"
   }
 }
