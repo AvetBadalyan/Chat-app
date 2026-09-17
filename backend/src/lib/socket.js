@@ -9,7 +9,7 @@ const io = new Server(server, {
 	cors: {
 		origin:
 			process.env.NODE_ENV === 'production'
-				? ['https://avetbook-chat-app.onrender.com']
+				? 'https://chat-app-avetbook.fly.dev'
 				: ['http://localhost:5173'],
 		credentials: true
 	}
