@@ -33,21 +33,17 @@ export const signup = async (req, res) => {
 			password: hashedPassword
 		})
 
-		if (newUser) {
-			generateToken(newUser._id, res)
-			await newUser.save()
+		// Persist the user first, then issue the auth cookie. This avoids
+		// handing out a valid token for a user that failed to save.
+		await newUser.save()
+		generateToken(newUser._id, res)
 
-			res.status(201).json({
-				_id: newUser._id,
-				fullName: newUser.fullName,
-				email: newUser.email,
-				profilePic: newUser.profilePic
-			})
-		} else {
-			res
-				.status(400)
-				.json({ message: 'Could not create account. Please try again.' })
-		}
+		res.status(201).json({
+			_id: newUser._id,
+			fullName: newUser.fullName,
+			email: newUser.email,
+			profilePic: newUser.profilePic
+		})
 	} catch (error) {
 		console.log('Error in signup controller', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
@@ -84,7 +80,14 @@ export const login = async (req, res) => {
 
 export const logout = (req, res) => {
 	try {
-		res.cookie('jwt', '', { maxAge: 0 })
+		// Clear the cookie using the same attributes it was set with,
+		// otherwise some browsers won't remove it.
+		res.cookie('jwt', '', {
+			maxAge: 0,
+			httpOnly: true,
+			sameSite: 'strict',
+			secure: process.env.NODE_ENV !== 'development'
+		})
 		res.status(200).json({ message: 'Logged out successfully' })
 	} catch (error) {
 		console.log('Error in logout controller', error.message)
@@ -106,7 +109,7 @@ export const updateProfile = async (req, res) => {
 			userId,
 			{ profilePic: uploadResponse.secure_url },
 			{ new: true }
-		)
+		).select('-password')
 
 		res.status(200).json(updatedUser)
 	} catch (error) {

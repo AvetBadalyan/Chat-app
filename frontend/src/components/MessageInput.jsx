@@ -7,8 +7,17 @@ const MessageInput = () => {
 	const [text, setText] = useState('')
 	const [imagePreview, setImagePreview] = useState(null)
 	const fileInputRef = useRef(null)
+	const textareaRef = useRef(null)
 	const typingTimeoutRef = useRef(null)
 	const { sendMessage, emitTyping, emitStopTyping } = useChatStore()
+
+	// Auto-resize textarea to fit content, up to the CSS max-height
+	const resizeTextarea = () => {
+		const el = textareaRef.current
+		if (!el) return
+		el.style.height = 'auto'
+		el.style.height = `${el.scrollHeight}px`
+	}
 
 	// Cleanup typing timeout on unmount
 	useEffect(() => {
@@ -43,6 +52,11 @@ const MessageInput = () => {
 			return
 		}
 
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error('Image must be smaller than 5 MB')
+			return
+		}
+
 		const reader = new FileReader()
 		reader.onloadend = () => {
 			setImagePreview(reader.result)
@@ -71,10 +85,13 @@ const MessageInput = () => {
 				image: imagePreview
 			})
 
-			// Clear form
+			// Clear form and reset textarea height
 			setText('')
 			setImagePreview(null)
 			if (fileInputRef.current) fileInputRef.current.value = ''
+			if (textareaRef.current) {
+				textareaRef.current.style.height = 'auto'
+			}
 		} catch (error) {
 			console.error('Failed to send message:', error)
 		}
@@ -82,6 +99,7 @@ const MessageInput = () => {
 
 	const handleTextChange = e => {
 		setText(e.target.value)
+		resizeTextarea()
 		if (e.target.value.trim()) {
 			handleTyping()
 		} else {
@@ -113,9 +131,10 @@ const MessageInput = () => {
 						/>
 						<button
 							onClick={removeImage}
-							className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-base-300 hover:bg-base-content/20
+							className="absolute -top-1.5 -right-1.5 size-5 rounded-full bg-base-300 hover:bg-base-content/20
               flex items-center justify-center transition-colors"
 							type="button"
+							aria-label="Remove image"
 						>
 							<X className="size-3" />
 						</button>
@@ -129,7 +148,8 @@ const MessageInput = () => {
 			>
 				<div className="flex-1 flex gap-2">
 					<textarea
-						className="w-full textarea rounded-lg resize-none min-h-[44px] max-h-32 py-3 leading-tight bg-base-200/50 border border-base-content/10 focus:border-primary/30 focus:bg-base-200"
+						ref={textareaRef}
+						className="w-full textarea rounded-lg resize-none min-h-[44px] max-h-32 py-3 leading-tight bg-base-200/50 border border-base-content/10 focus:border-primary/30 focus:bg-base-200 overflow-y-auto"
 						placeholder="Type a message..."
 						value={text}
 						onChange={handleTextChange}
@@ -146,9 +166,10 @@ const MessageInput = () => {
 
 					<button
 						type="button"
-						className={`hidden sm:flex btn btn-circle btn-ghost self-end
+						className={`flex btn btn-circle btn-ghost self-end
                      ${imagePreview ? 'text-success' : 'text-base-content/40 hover:text-base-content/70'}`}
 						onClick={() => fileInputRef.current?.click()}
+						aria-label="Attach image"
 					>
 						<Image size={20} />
 					</button>
@@ -157,6 +178,7 @@ const MessageInput = () => {
 					type="submit"
 					className="btn btn-circle btn-primary"
 					disabled={!text.trim() && !imagePreview}
+					aria-label="Send message"
 				>
 					<Send size={20} />
 				</button>

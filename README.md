@@ -15,9 +15,13 @@ to explore features instantly.
 - **Unread message badges** — Track unread conversations with visual indicators
 - **Online presence** — Live status showing who's currently online
 - **Image sharing** — Send images with Cloudinary storage integration
-- **Light/Dark theme** — Toggle between light and dark mode
+- **32 themes** — A quick light/dark toggle plus a full DaisyUI theme picker,
+  persisted to localStorage
 - **Secure authentication** — JWT-based auth with HTTP-only cookies
-- **Responsive design** — Works on desktop, tablet, and mobile
+- **Responsive design** — Mobile shows one panel at a time (contacts or the open
+  chat); desktop shows both side by side
+- **Accessibility** — Labelled icon controls and a `prefers-reduced-motion`
+  fallback
 
 ## Tech Stack
 
@@ -54,20 +58,28 @@ Socket events are subscribed once on authentication, not per conversation. This
 allows tracking messages from all users (for unread badges) rather than only the
 selected conversation.
 
-**Optimistic UI with Real-time Sync**  
-Reactions and typing indicators update instantly via Socket.io events. The
-sender makes an API call, and the server broadcasts to all relevant parties.
+**Real-time Sync over REST + Sockets**  
+Writes (send message, add reaction) go through the REST API so the server stays
+the source of truth. The server then broadcasts the result over Socket.io to the
+relevant participants, so every connected client stays in sync without polling.
+Chat listeners are attached on the socket `connect` event rather than a timer,
+avoiding a startup race.
 
 **State Management with Zustand**  
-Two stores separate concerns: `useAuthStore` (auth + socket + online users),
-`useChatStore` (messages + users + typing). Theme preference is stored in
-`useThemeStore` with localStorage persistence.
+Two stores separate concerns: `useAuthStore` (auth + socket lifecycle + online
+users) and `useChatStore` (messages + users + typing + unread counts). Theme
+preference lives in `useThemeStore` with localStorage persistence.
+
+**Consistent Error Handling**  
+The API returns a single `{ message }` error shape across every endpoint, and
+the client normalizes any axios/network failure through one shared
+`getErrorMessage` helper before surfacing a toast.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.19+
 - MongoDB (local or Atlas)
 - Cloudinary account (for image uploads)
 

@@ -1,5 +1,6 @@
 import { Camera, Mail, User } from 'lucide-react'
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import { useAuthStore } from '../store/useAuthStore'
 
 const ProfilePage = () => {
@@ -9,6 +10,16 @@ const ProfilePage = () => {
 	const handleImageUpload = async e => {
 		const file = e.target.files[0]
 		if (!file) return
+
+		if (!file.type.startsWith('image/')) {
+			toast.error('Please select an image file')
+			return
+		}
+
+		if (file.size > 5 * 1024 * 1024) {
+			toast.error('Image must be smaller than 5 MB')
+			return
+		}
 
 		const reader = new FileReader()
 		reader.readAsDataURL(file)
@@ -35,7 +46,7 @@ const ProfilePage = () => {
 					<div className="flex flex-col items-center gap-4">
 						<div className="relative">
 							<img
-								src={selectedImg || authUser.profilePic || '/avatar.png'}
+								src={selectedImg || authUser?.profilePic || '/avatar.png'}
 								alt="Profile"
 								className="size-32 rounded-full object-cover border-4 border-base-content/10"
 							/>
@@ -47,7 +58,7 @@ const ProfilePage = () => {
 									${isUpdatingProfile ? 'animate-pulse pointer-events-none' : ''}
 								`}
 							>
-								<Camera className="w-5 h-5 text-primary-content" />
+								<Camera className="size-5 text-primary-content" />
 								<input
 									type="file"
 									id="avatar-upload"
@@ -69,7 +80,7 @@ const ProfilePage = () => {
 					<div className="space-y-4">
 						<div className="space-y-1.5">
 							<div className="text-sm text-base-content/60 flex items-center gap-2">
-								<User className="w-4 h-4" />
+								<User className="size-4" />
 								Full Name
 							</div>
 							<p className="px-4 py-2.5 bg-base-content/5 rounded-lg">
@@ -79,7 +90,7 @@ const ProfilePage = () => {
 
 						<div className="space-y-1.5">
 							<div className="text-sm text-base-content/60 flex items-center gap-2">
-								<Mail className="w-4 h-4" />
+								<Mail className="size-4" />
 								Email Address
 							</div>
 							<p className="px-4 py-2.5 bg-base-content/5 rounded-lg">
@@ -94,7 +105,15 @@ const ProfilePage = () => {
 						<div className="space-y-3 text-sm">
 							<div className="flex items-center justify-between py-2 border-b border-base-content/5">
 								<span className="text-base-content/60">Member Since</span>
-								<span>{authUser.createdAt?.split('T')[0]}</span>
+								<span>
+									{authUser?.createdAt
+										? new Date(authUser.createdAt).toLocaleDateString('en-US', {
+												year: 'numeric',
+												month: 'long',
+												day: 'numeric'
+											})
+										: '—'}
+								</span>
 							</div>
 							<div className="flex items-center justify-between py-2">
 								<span className="text-base-content/60">Account Status</span>

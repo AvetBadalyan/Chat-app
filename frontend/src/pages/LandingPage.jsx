@@ -3,7 +3,7 @@ import {
 	Image,
 	Loader2,
 	MessageSquare,
-	Palette,
+	Moon,
 	Shield,
 	Sparkles,
 	Users,
@@ -34,6 +34,7 @@ const useInView = (options = {}) => {
 		}
 
 		return () => observer.disconnect()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return [ref, isInView]
@@ -110,10 +111,10 @@ const LandingPage = () => {
 			color: 'from-red-500/20 to-pink-500/20'
 		},
 		{
-			icon: Palette,
-			title: '30+ Themes',
+			icon: Moon,
+			title: 'Dark & Light Mode',
 			description:
-				'Customize your experience with a wide variety of color themes.',
+				'Beautifully designed dark and light themes with a single click.',
 			color: 'from-purple-500/20 to-violet-500/20'
 		},
 		{
@@ -156,7 +157,7 @@ const LandingPage = () => {
 						className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8 transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
 					>
 						<Sparkles className="size-4 text-primary animate-pulse" />
-						<span className="text-sm font-medium bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent animate-shimmer">
+						<span className="text-sm font-medium bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
 							Real-time chat powered by Socket.io
 						</span>
 					</div>
@@ -220,7 +221,7 @@ const LandingPage = () => {
 
 						<Link
 							to="/signup"
-							className="btn btn-outline btn-lg gap-2 hover:scale-105 transition-all duration-300 animate-border-glow"
+							className="btn btn-outline btn-lg gap-2 hover:scale-105 transition-all duration-300"
 						>
 							Create Account
 						</Link>
@@ -265,7 +266,7 @@ const LandingPage = () => {
 				<div className="max-w-6xl mx-auto px-4">
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
 						{[
-							{ value: 30, suffix: '+', label: 'Themes Available' },
+							{ value: 2, suffix: '', label: 'Polished Themes' },
 							{ value: 100, suffix: '%', label: 'Real-time' },
 							{ value: 6, suffix: '', label: 'Emoji Reactions' },
 							{ value: 24, suffix: '/7', label: 'Always Online' }
@@ -526,133 +527,6 @@ const LandingPage = () => {
 					</p>
 				</div>
 			</footer>
-
-			{/* Global styles for animations */}
-			<style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
-        }
-        
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
-        }
-        
-        @keyframes float-subtle {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-4px); }
-        }
-        
-        @keyframes gradient {
-          0% { background-position: 0% center; }
-          50% { background-position: 100% center; }
-          100% { background-position: 0% center; }
-        }
-        
-        @keyframes scroll-dot {
-          0% { opacity: 1; transform: translateY(0); }
-          50% { opacity: 0.5; transform: translateY(6px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        
-        @keyframes pulse-glow {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.1); }
-        }
-        
-        @keyframes breathe {
-          0%, 100% { transform: scale(1); opacity: 0.3; }
-          50% { transform: scale(1.2); opacity: 0.5; }
-        }
-        
-        @keyframes shimmer {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-        
-        @keyframes icon-subtle {
-          0%, 100% { transform: scale(1) rotate(0deg); }
-          25% { transform: scale(1.05) rotate(-3deg); }
-          75% { transform: scale(1.05) rotate(3deg); }
-        }
-        
-        @keyframes pulse-subtle {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        
-        @keyframes ping-slow {
-          0% { transform: scale(1); opacity: 1; }
-          75%, 100% { transform: scale(2); opacity: 0; }
-        }
-        
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
-        }
-        
-        @keyframes bounce-once {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-        
-        @keyframes glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(var(--p) / 0.3); }
-          50% { box-shadow: 0 0 30px rgba(var(--p) / 0.5); }
-        }
-        
-        @keyframes border-glow {
-          0%, 100% { border-color: currentColor; }
-          50% { border-color: hsl(var(--p)); }
-        }
-        
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        
-        .animate-float { animation: float 4s ease-in-out infinite; }
-        .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
-        .animate-float-subtle { animation: float-subtle 3s ease-in-out infinite; }
-        .animate-gradient { animation: gradient 4s ease infinite; }
-        .animate-scroll-dot { animation: scroll-dot 2s ease-in-out infinite; }
-        .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
-        .animate-breathe { animation: breathe 8s ease-in-out infinite; }
-        .animate-shimmer { 
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-          background-size: 200% 100%;
-          animation: shimmer 3s linear infinite;
-        }
-        .animate-icon-subtle { animation: icon-subtle 4s ease-in-out infinite; }
-        .animate-pulse-subtle { animation: pulse-subtle 2s ease-in-out infinite; }
-        .animate-ping-slow { animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite; }
-        .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
-        .animate-bounce-once { animation: bounce-once 0.5s ease-in-out; }
-        .animate-glow { animation: glow 2s ease-in-out infinite; }
-        .animate-border-glow { animation: border-glow 2s ease-in-out infinite; }
-        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
-        
-        .delay-1000 { animation-delay: 1000ms; }
-        .delay-2000 { animation-delay: 2000ms; }
-        
-        .shadow-3xl { box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3); }
-      `}</style>
 		</div>
 	)
 }

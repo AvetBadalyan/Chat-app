@@ -1,19 +1,11 @@
 import toast from 'react-hot-toast'
 import { io } from 'socket.io-client'
 import { create } from 'zustand'
-import { axiosInstance } from '../lib/axios.js'
+import { axiosInstance, getErrorMessage } from '../lib/axios.js'
 import { useChatStore } from './useChatStore.js'
 
 const BASE_URL =
 	import.meta.env.MODE === 'development' ? 'http://localhost:5001' : '/'
-
-const getErrorMessage = error => {
-	const message = error.response?.data?.message
-	if (message) return message
-	if (error.code === 'ERR_NETWORK')
-		return 'Unable to connect to server. Please check your connection.'
-	return 'Something went wrong. Please try again.'
-}
 
 export const useAuthStore = create((set, get) => ({
 	authUser: null,
@@ -70,9 +62,11 @@ export const useAuthStore = create((set, get) => ({
 	logout: async () => {
 		try {
 			await axiosInstance.post('/auth/logout')
+			get().disconnectSocket()
+			// Reset chat state so the next login starts clean
+			useChatStore.getState().resetState()
 			set({ authUser: null })
 			toast.success('Logged out successfully')
-			get().disconnectSocket()
 		} catch (error) {
 			toast.error(getErrorMessage(error))
 		}
@@ -97,22 +91,23 @@ export const useAuthStore = create((set, get) => ({
 		if (!authUser || get().socket?.connected) return
 
 		const socket = io(BASE_URL, {
-			query: {
-				userId: authUser._id
-			}
+			query: { userId: authUser._id }
 		})
-		socket.connect()
 
-		set({ socket: socket })
+		// Store in state immediately so getState().socket is never null
+		// when the 'connect' event fires (even on a very fast connection).
+		set({ socket })
 
 		socket.on('getOnlineUsers', userIds => {
 			set({ onlineUsers: userIds })
 		})
 
-		// Subscribe to chat events after socket is connected
-		setTimeout(() => {
+		// Attach chat listeners once the connection is established.
+		// socket.io re-fires 'connect' on every reconnect, so this also
+		// re-subscribes cleanly after a network drop.
+		socket.on('connect', () => {
 			useChatStore.getState().subscribeToSocket()
-		}, 100)
+		})
 	},
 
 	disconnectSocket: () => {

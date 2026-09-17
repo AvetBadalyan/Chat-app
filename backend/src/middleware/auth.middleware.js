@@ -9,9 +9,11 @@ export const protectRoute = async (req, res, next) => {
 			return res.status(401).json({ message: 'Please log in to continue' })
 		}
 
-		const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-		if (!decoded) {
+		let decoded
+		try {
+			decoded = jwt.verify(token, process.env.JWT_SECRET)
+		} catch {
+			// Invalid or expired token -> unauthorized, not a server error.
 			return res
 				.status(401)
 				.json({ message: 'Session expired. Please log in again.' })
@@ -27,7 +29,7 @@ export const protectRoute = async (req, res, next) => {
 
 		next()
 	} catch (error) {
-		console.log('Error in protectRoute middleware: ', error.message)
+		console.error('Error in protectRoute middleware: ', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }

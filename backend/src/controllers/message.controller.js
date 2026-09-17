@@ -14,7 +14,7 @@ export const getUsersForSidebar = async (req, res) => {
 		res.status(200).json(filteredUsers)
 	} catch (error) {
 		console.error('Error in getUsersForSidebar: ', error.message)
-		res.status(500).json({ error: 'Internal server error' })
+		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
 
@@ -28,12 +28,12 @@ export const getMessages = async (req, res) => {
 				{ senderId: myId, receiverId: userToChatId },
 				{ senderId: userToChatId, receiverId: myId }
 			]
-		})
+		}).sort({ createdAt: 1 })
 
 		res.status(200).json(messages)
 	} catch (error) {
-		console.log('Error in getMessages controller: ', error.message)
-		res.status(500).json({ error: 'Internal server error' })
+		console.error('Error in getMessages controller: ', error.message)
+		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
 
@@ -43,6 +43,11 @@ export const sendMessage = async (req, res) => {
 		const { id: receiverId } = req.params
 		const senderId = req.user._id
 
+		// A message must contain at least text or an image.
+		if (!text?.trim() && !image) {
+			return res.status(400).json({ message: 'Message cannot be empty' })
+		}
+
 		let imageUrl
 		if (image) {
 			try {
@@ -50,14 +55,14 @@ export const sendMessage = async (req, res) => {
 				imageUrl = uploadResponse.secure_url
 			} catch (cloudinaryError) {
 				console.error('Cloudinary upload error:', cloudinaryError)
-				return res.status(500).json({ error: 'Failed to upload image' })
+				return res.status(500).json({ message: 'Failed to upload image' })
 			}
 		}
 
 		const newMessage = new Message({
 			senderId,
 			receiverId,
-			text,
+			text: text?.trim(),
 			image: imageUrl,
 			reactions: []
 		})
@@ -72,7 +77,7 @@ export const sendMessage = async (req, res) => {
 		res.status(201).json(newMessage)
 	} catch (error) {
 		console.error('Error in sendMessage controller:', error)
-		res.status(500).json({ error: 'Internal server error' })
+		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
 
@@ -83,12 +88,22 @@ export const addReaction = async (req, res) => {
 		const userId = req.user._id
 
 		if (!emoji) {
-			return res.status(400).json({ error: 'Emoji is required' })
+			return res.status(400).json({ message: 'Emoji is required' })
 		}
 
 		const message = await Message.findById(messageId)
 		if (!message) {
-			return res.status(404).json({ error: 'Message not found' })
+			return res.status(404).json({ message: 'Message not found' })
+		}
+
+		// Only participants of the conversation can react to a message.
+		const isParticipant =
+			message.senderId.toString() === userId.toString() ||
+			message.receiverId.toString() === userId.toString()
+		if (!isParticipant) {
+			return res
+				.status(403)
+				.json({ message: 'Not authorized to react to this message' })
 		}
 
 		// Check if user already reacted with this emoji
@@ -129,6 +144,6 @@ export const addReaction = async (req, res) => {
 		res.status(200).json(message)
 	} catch (error) {
 		console.error('Error in addReaction controller:', error)
-		res.status(500).json({ error: 'Internal server error' })
+		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }

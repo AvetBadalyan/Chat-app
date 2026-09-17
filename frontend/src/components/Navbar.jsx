@@ -1,11 +1,13 @@
 import { LogIn, LogOut, MessageSquare, Moon, Sun, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
-import { useThemeStore } from '../store/useThemeStore'
+import { DARK, useThemeStore } from '../store/useThemeStore'
 
 const Navbar = () => {
 	const { logout, authUser } = useAuthStore()
 	const { theme, toggleTheme } = useThemeStore()
+
+	const isDark = theme === DARK
 
 	return (
 		<header className="border-b border-base-content/10 fixed w-full top-0 z-40 backdrop-blur-lg bg-base-100/80">
@@ -16,19 +18,22 @@ const Navbar = () => {
 						className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
 					>
 						<div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-							<MessageSquare className="w-5 h-5 text-primary" />
+							<MessageSquare className="size-5 text-primary" />
 						</div>
 						<h1 className="text-lg font-bold">Avetbook</h1>
 					</Link>
 
 					<div className="flex items-center gap-2">
-						{/* Theme toggle */}
+						{/* Dark / light toggle */}
 						<button
 							onClick={toggleTheme}
 							className="btn btn-sm btn-ghost btn-circle hover:bg-base-content/10"
-							title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+							aria-label={
+								isDark ? 'Switch to light mode' : 'Switch to dark mode'
+							}
+							title={isDark ? 'Light mode' : 'Dark mode'}
 						>
-							{theme === 'dark' ? (
+							{isDark ? (
 								<Sun className="size-5" />
 							) : (
 								<Moon className="size-5" />

@@ -18,6 +18,11 @@ const App = () => {
 	const { authUser, checkAuth, isCheckingAuth } = useAuthStore()
 	const { theme } = useThemeStore()
 
+	// Apply theme to <html> so every portal (Toaster, modals) inherits it
+	useEffect(() => {
+		document.documentElement.setAttribute('data-theme', theme)
+	}, [theme])
+
 	useEffect(() => {
 		checkAuth()
 	}, [checkAuth])
@@ -30,11 +35,10 @@ const App = () => {
 		)
 
 	return (
-		<div data-theme={theme}>
+		<>
 			<Navbar />
 
 			<Routes>
-				{/* Landing page for non-authenticated users, chat for authenticated */}
 				<Route
 					path="/"
 					element={authUser ? <ChatPage /> : <LandingPage />}
@@ -54,7 +58,7 @@ const App = () => {
 			</Routes>
 
 			<Toaster />
-		</div>
+		</>
 	)
 }
 export default App

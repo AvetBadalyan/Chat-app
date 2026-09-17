@@ -32,17 +32,22 @@ const Sidebar = () => {
 		return unreadB - unreadA
 	})
 
+	// Count online users from the contacts list (excludes the logged-in user)
+	const otherOnlineCount = users.filter(user =>
+		onlineUsers.includes(user._id)
+	).length
+
 	if (isUsersLoading) return <SidebarSkeleton />
 
 	return (
-		<aside className="h-full w-20 lg:w-72 border-r border-base-content/10 flex flex-col transition-all duration-200">
+		<aside className="h-full w-full lg:w-72 border-r border-base-content/10 flex flex-col transition-all duration-200">
 			<div className="border-b border-base-content/10 w-full p-5">
 				<div className="flex items-center gap-2">
 					<Users className="size-6" />
-					<span className="font-medium hidden lg:block">Contacts</span>
+					<span className="font-medium">Contacts</span>
 				</div>
 				{/* Online filter toggle */}
-				<div className="mt-3 hidden lg:flex items-center gap-2">
+				<div className="mt-3 flex items-center gap-2">
 					<label className="cursor-pointer flex items-center gap-2">
 						<input
 							type="checkbox"
@@ -53,12 +58,12 @@ const Sidebar = () => {
 						<span className="text-sm">Show online only</span>
 					</label>
 					<span className="text-xs text-base-content/50">
-						({onlineUsers.length - 1} online)
+						({otherOnlineCount} online)
 					</span>
 				</div>
 			</div>
 
-			<div className="overflow-y-auto w-full py-3">
+			<div className="overflow-y-auto w-full py-3 px-2">
 				{sortedUsers.map(user => {
 					const unreadCount = unreadCounts[user._id] || 0
 
@@ -67,7 +72,7 @@ const Sidebar = () => {
 							key={user._id}
 							onClick={() => setSelectedUser(user)}
 							className={`
-                w-full p-3 flex items-center gap-3 rounded-lg mx-1
+                w-full p-3 flex items-center gap-3 rounded-lg
                 transition-colors animate-fade-in
                 ${
 									selectedUser?._id === user._id
@@ -76,36 +81,27 @@ const Sidebar = () => {
 								}
               `}
 						>
-							<div className="relative mx-auto lg:mx-0">
+							<div className="relative">
 								<img
 									src={user.profilePic || '/avatar.png'}
-									alt={user.name}
+									alt={user.fullName}
 									className="size-12 object-cover rounded-full"
 								/>
 								{onlineUsers.includes(user._id) && (
 									<span
-										className="absolute bottom-0 right-0 size-3 bg-green-500 
+										className="absolute bottom-0 right-0 size-3 bg-success 
                     rounded-full ring-2 ring-base-100"
 									/>
 								)}
-								{/* Unread badge - shown on avatar for mobile */}
-								{unreadCount > 0 && (
-									<span
-										className="absolute -top-1 -right-1 size-5 bg-primary text-primary-content
-                    rounded-full flex items-center justify-center text-xs font-bold lg:hidden"
-									>
-										{unreadCount > 9 ? '9+' : unreadCount}
-									</span>
-								)}
 							</div>
 
-							{/* User info - only visible on larger screens */}
-							<div className="hidden lg:block text-left min-w-0 flex-1">
-								<div className="flex items-center justify-between">
+							{/* User info */}
+							<div className="text-left min-w-0 flex-1">
+								<div className="flex items-center justify-between gap-2">
 									<span className="font-medium truncate">{user.fullName}</span>
-									{/* Unread badge - shown next to name for desktop */}
+									{/* Unread badge */}
 									{unreadCount > 0 && (
-										<span className="badge badge-primary badge-sm">
+										<span className="badge badge-primary badge-sm shrink-0">
 											{unreadCount > 99 ? '99+' : unreadCount}
 										</span>
 									)}
@@ -120,7 +116,7 @@ const Sidebar = () => {
 
 				{filteredUsers.length === 0 && (
 					<div className="text-center text-base-content/50 py-4">
-						No online users
+						{showOnlineOnly ? 'No online users' : 'No contacts yet'}
 					</div>
 				)}
 			</div>

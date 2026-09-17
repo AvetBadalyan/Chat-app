@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast'
 import { create } from 'zustand'
-import { axiosInstance } from '../lib/axios'
+import { axiosInstance, getErrorMessage } from '../lib/axios'
 import { useAuthStore } from './useAuthStore'
 
 export const useChatStore = create((set, get) => ({
@@ -18,7 +18,7 @@ export const useChatStore = create((set, get) => ({
 			const res = await axiosInstance.get('/messages/users')
 			set({ users: res.data })
 		} catch (error) {
-			toast.error(error.response?.data?.message || 'Unable to load contacts')
+			toast.error(getErrorMessage(error))
 		} finally {
 			set({ isUsersLoading: false })
 		}
@@ -30,7 +30,7 @@ export const useChatStore = create((set, get) => ({
 			const res = await axiosInstance.get(`/messages/${userId}`)
 			set({ messages: res.data })
 		} catch (error) {
-			toast.error(error.response?.data?.message || 'Unable to load messages')
+			toast.error(getErrorMessage(error))
 		} finally {
 			set({ isMessagesLoading: false })
 		}
@@ -45,7 +45,7 @@ export const useChatStore = create((set, get) => ({
 			)
 			set({ messages: [...messages, res.data] })
 		} catch (error) {
-			toast.error(error.response?.data?.message || 'Message could not be sent')
+			toast.error(getErrorMessage(error))
 		}
 	},
 
@@ -54,14 +54,21 @@ export const useChatStore = create((set, get) => ({
 			await axiosInstance.post(`/messages/react/${messageId}`, { emoji })
 			// Real-time update will come via socket
 		} catch (error) {
-			toast.error(error.response?.data?.message || 'Could not add reaction')
+			toast.error(getErrorMessage(error))
 		}
 	},
 
-	// Subscribe to all socket events (called once on auth)
+	// Subscribe to all socket events. Safe to call on every `connect`
+	// (including reconnects) because we clear prior listeners first,
+	// which prevents duplicate handlers stacking up after a reconnection.
 	subscribeToSocket: () => {
 		const socket = useAuthStore.getState().socket
 		if (!socket) return
+
+		socket.off('newMessage')
+		socket.off('messageReaction')
+		socket.off('userTyping')
+		socket.off('userStoppedTyping')
 
 		// Listen for new messages from anyone
 		socket.on('newMessage', newMessage => {
@@ -118,32 +125,20 @@ export const useChatStore = create((set, get) => ({
 		socket.off('userStoppedTyping')
 	},
 
-	// Legacy methods for backward compatibility (now mostly no-ops)
-	subscribeToMessages: () => {
-		// Socket subscription is now handled globally in subscribeToSocket
-	},
-
-	unsubscribeFromMessages: () => {
-		// Clear typing state when changing conversations
-		set({ typingUsers: {} })
-	},
-
 	// Emit typing event to the selected user
 	emitTyping: () => {
 		const { selectedUser } = get()
 		if (!selectedUser) return
-
 		const socket = useAuthStore.getState().socket
-		socket.emit('typing', { receiverId: selectedUser._id })
+		socket?.emit('typing', { receiverId: selectedUser._id })
 	},
 
 	// Emit stop typing event
 	emitStopTyping: () => {
 		const { selectedUser } = get()
 		if (!selectedUser) return
-
 		const socket = useAuthStore.getState().socket
-		socket.emit('stopTyping', { receiverId: selectedUser._id })
+		socket?.emit('stopTyping', { receiverId: selectedUser._id })
 	},
 
 	// Clear unread count for a specific user
@@ -160,5 +155,15 @@ export const useChatStore = create((set, get) => ({
 			get().clearUnreadCount(selectedUser._id)
 		}
 		set({ selectedUser, typingUsers: {} })
+	},
+
+	// Called on logout to wipe all conversation state
+	resetState: () => {
+		set({
+			messages: [],
+			selectedUser: null,
+			typingUsers: {},
+			unreadCounts: {}
+		})
 	}
 }))

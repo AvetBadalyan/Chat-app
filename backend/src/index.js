@@ -30,38 +30,32 @@ app.use(
 app.use('/api/auth', authRoutes)
 app.use('/api/messages', messageRoutes)
 
-// Global error handler
-app.use((err, req, res, next) => {
-	console.error('Global error:', err)
-
-	const statusCode = err.statusCode || 500
-	const message = err.message || 'Internal server error'
-
-	res.status(statusCode).json({
-		success: false,
-		message,
-		...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-	})
+// 404 for unknown API routes (must come before the SPA fallback)
+app.use('/api', (req, res) => {
+	res.status(404).json({ message: 'API endpoint not found' })
 })
 
-// 404 handler for unknown API routes
-app.use((req, res, next) => {
-	if (req.path.startsWith('/api/')) {
-		res.status(404).json({
-			success: false,
-			message: 'API endpoint not found'
-		})
-	} else {
-		next()
-	}
-})
-
+// Serve the built frontend in production
 if (process.env.NODE_ENV === 'production') {
 	app.use(express.static(path.join(__dirname, '../frontend/dist')))
 	app.get(/.*/, (req, res) => {
 		res.sendFile(path.join(__dirname, '../frontend', 'dist', 'index.html'))
 	})
 }
+
+// Global error handler (last middleware). Controllers that call next(err)
+// or any framework-level error will land here with a consistent shape.
+app.use((err, req, res, next) => {
+	console.error('Global error:', err)
+
+	const statusCode = err.statusCode || 500
+	const message = err.message || 'Something went wrong. Please try again.'
+
+	res.status(statusCode).json({
+		message,
+		...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+	})
+})
 
 server.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`)
