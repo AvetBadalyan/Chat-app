@@ -6,6 +6,7 @@ import path from 'path'
 import { connectDB } from './lib/db.js'
 import { app, server } from './lib/socket.js'
 import authRoutes from './routes/auth.route.js'
+import healthRoutes from './routes/health.route.js'
 import messageRoutes from './routes/message.route.js'
 
 dotenv.config({ quiet: true })
@@ -27,6 +28,7 @@ app.use(
 	})
 )
 
+app.use('/api/health', healthRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/messages', messageRoutes)
 
