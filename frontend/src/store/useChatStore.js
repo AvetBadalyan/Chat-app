@@ -16,7 +16,12 @@ export const useChatStore = create((set, get) => ({
 		set({ isUsersLoading: true })
 		try {
 			const res = await axiosInstance.get('/messages/users')
-			set({ users: res.data })
+			// The server tells us how many unread messages each contact has
+			const unreadCounts = {}
+			for (const user of res.data) {
+				if (user.unreadCount > 0) unreadCounts[user._id] = user.unreadCount
+			}
+			set({ users: res.data, unreadCounts })
 		} catch (error) {
 			toast.error(getErrorMessage(error))
 		} finally {
@@ -72,6 +77,15 @@ export const useChatStore = create((set, get) => ({
 		}
 	},
 
+	// Tell the server we have read this contact's messages (so the badge stays gone after a reload)
+	markAsRead: async contactId => {
+		try {
+			await axiosInstance.put(`/messages/read/${contactId}`)
+		} catch {
+			// Not important enough to show an error to the user
+		}
+	},
+
 	// Remember "now" as the latest message time of a contact, so that
 	// contact moves to the top of the list.
 	bumpContact: contactId => {
@@ -103,6 +117,7 @@ export const useChatStore = create((set, get) => ({
 			// If message is from currently selected user, add to messages
 			if (selectedUser && newMessage.senderId === selectedUser._id) {
 				set({ messages: [...messages, newMessage] })
+				get().markAsRead(newMessage.senderId)
 			} else {
 				// Otherwise, increment unread count for that sender
 				const senderId = newMessage.senderId
@@ -184,6 +199,7 @@ export const useChatStore = create((set, get) => ({
 		// Clear unread count when selecting a user
 		if (selectedUser) {
 			get().clearUnreadCount(selectedUser._id)
+			get().markAsRead(selectedUser._id)
 		}
 		// Clear the old chat right away so it is never shown inside the new one
 		set({

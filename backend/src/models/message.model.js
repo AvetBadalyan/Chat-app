@@ -33,6 +33,10 @@ const messageSchema = new mongoose.Schema(
 		image: {
 			type: String
 		},
+		// true until the receiver opens the chat. Old messages have no value, which counts as read.
+		isUnread: {
+			type: Boolean
+		},
 		reactions: [reactionSchema]
 	},
 	{ timestamps: true }

@@ -11,30 +11,35 @@ const MAX_EMOJI_LENGTH = 8
 export const getUsersForSidebar = async (req, res) => {
 	try {
 		const loggedInUserId = req.user._id
-		const users = await User.find({
-			_id: { $ne: loggedInUserId }
-		})
-			.select('fullName profilePic') // never send other users' emails
-			.lean()
-
-		// Newest first, so the first message we see for each contact is the latest
-		const myMessages = await Message.find({
-			$or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }]
-		}).sort({ createdAt: -1 })
+		// Both lookups are independent, so run them at the same time
+		const [users, myMessages] = await Promise.all([
+			User.find({ _id: { $ne: loggedInUserId } })
+				.select('fullName profilePic') // never send other users' emails
+				.lean(),
+			// Newest first, so the first message we see for each contact is the latest
+			Message.find({
+				$or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }]
+			}).sort({ createdAt: -1 })
+		])
 
 		// lastMessageAt = { contactId: time of the latest message with that contact }
 		const lastMessageAt = {}
+		const unreadCounts = {} // { contactId: how many of their messages I have not read }
 		for (const message of myMessages) {
 			const iSentIt = String(message.senderId) === String(loggedInUserId)
 			const contactId = String(iSentIt ? message.receiverId : message.senderId)
 			if (!lastMessageAt[contactId]) {
 				lastMessageAt[contactId] = message.createdAt
 			}
+			if (!iSentIt && message.isUnread) {
+				unreadCounts[contactId] = (unreadCounts[contactId] || 0) + 1
+			}
 		}
 
 		const usersWithLastMessage = users.map(user => ({
 			...user,
-			lastMessageAt: lastMessageAt[String(user._id)] || null
+			lastMessageAt: lastMessageAt[String(user._id)] || null,
+			unreadCount: unreadCounts[String(user._id)] || 0
 		}))
 
 		res.status(200).json(usersWithLastMessage)
@@ -113,6 +118,7 @@ export const sendMessage = async (req, res) => {
 			receiverId,
 			text: text?.trim(),
 			image: imageUrl,
+			isUnread: true,
 			reactions: []
 		})
 
@@ -197,6 +203,26 @@ export const addReaction = async (req, res) => {
 		res.status(200).json(message)
 	} catch (error) {
 		console.error('Error in addReaction controller:', error)
+		res.status(500).json({ message: 'Something went wrong. Please try again.' })
+	}
+}
+
+// The receiver opened the chat with :id, so mark that person's messages as read
+export const markAsRead = async (req, res) => {
+	try {
+		const { id: senderId } = req.params
+
+		if (!mongoose.isValidObjectId(senderId)) {
+			return res.status(400).json({ message: 'Invalid user id' })
+		}
+
+		await Message.updateMany(
+			{ senderId, receiverId: req.user._id, isUnread: true },
+			{ isUnread: false }
+		)
+		res.status(200).json({ ok: true })
+	} catch (error) {
+		console.error('Error in markAsRead controller: ', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
