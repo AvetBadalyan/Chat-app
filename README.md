@@ -84,7 +84,8 @@ the client normalizes any axios/network failure through one shared
 
 ### Environment Variables
 
-Create `backend/.env`:
+Copy `backend/.env.example` to `backend/.env` and fill in your values. The
+server stops at startup if a required variable is missing:
 
 ```env
 MONGODB_URI=mongodb+srv://...
@@ -101,7 +102,7 @@ NODE_ENV=development
 ### Installation
 
 ```bash
-# Install dependencies for both frontend and backend
+# Install dependencies for both packages and build the frontend
 npm run build
 
 # Start development servers (backend + frontend)
