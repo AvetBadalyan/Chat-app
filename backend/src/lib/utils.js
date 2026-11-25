@@ -14,3 +14,15 @@ export const generateToken = (userId, res) => {
 
 	return token
 }
+
+// True only for a non-empty string. Stops objects like { $gt: '' } from
+// reaching MongoDB queries.
+export const isText = value => {
+	return typeof value === 'string' && value.trim() !== ''
+}
+
+// Only accept uploads that are real image data URLs from our own frontend.
+// Cloudinary would also download any http(s) link we pass it, so we block that.
+export const isImageDataUrl = value => {
+	return typeof value === 'string' && value.startsWith('data:image/')
+}

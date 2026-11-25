@@ -1,13 +1,24 @@
 import bcrypt from 'bcryptjs'
 import cloudinary from '../lib/cloudinary.js'
-import { generateToken } from '../lib/utils.js'
+import { generateToken, isImageDataUrl, isText } from '../lib/utils.js'
 import User from '../models/user.model.js'
 
 export const signup = async (req, res) => {
 	const { fullName, email, password } = req.body
+
 	try {
-		if (!fullName || !email || !password) {
+		// Check the types first so objects like { $gt: '' } never reach MongoDB.
+		if (!isText(fullName) || !isText(email) || !isText(password)) {
 			return res.status(400).json({ message: 'Please fill in all fields' })
+		}
+
+		const cleanName = fullName.trim()
+		const cleanEmail = email.trim().toLowerCase()
+
+		if (!/\S+@\S+\.\S+/.test(cleanEmail)) {
+			return res
+				.status(400)
+				.json({ message: 'Please enter a valid email address' })
 		}
 
 		if (password.length < 6) {
@@ -16,8 +27,14 @@ export const signup = async (req, res) => {
 				.json({ message: 'Password must be at least 6 characters' })
 		}
 
-		const user = await User.findOne({ email })
+		// bcrypt only uses the first 72 bytes of a password
+		if (password.length > 72) {
+			return res
+				.status(400)
+				.json({ message: 'Password must be at most 72 characters' })
+		}
 
+		const user = await User.findOne({ email: cleanEmail })
 		if (user) {
 			return res
 				.status(400)
@@ -28,8 +45,8 @@ export const signup = async (req, res) => {
 		const hashedPassword = await bcrypt.hash(password, salt)
 
 		const newUser = new User({
-			fullName,
-			email,
+			fullName: cleanName,
+			email: cleanEmail,
 			password: hashedPassword
 		})
 
@@ -42,10 +59,11 @@ export const signup = async (req, res) => {
 			_id: newUser._id,
 			fullName: newUser.fullName,
 			email: newUser.email,
-			profilePic: newUser.profilePic
+			profilePic: newUser.profilePic,
+			createdAt: newUser.createdAt
 		})
 	} catch (error) {
-		console.log('Error in signup controller', error.message)
+		console.error('Error in signup controller', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
@@ -53,7 +71,12 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
 	const { email, password } = req.body
 	try {
-		const user = await User.findOne({ email })
+		// Same type check as signup: blocks objects like { $gt: '' }
+		if (!isText(email) || !isText(password)) {
+			return res.status(400).json({ message: 'Please fill in all fields' })
+		}
+
+		const user = await User.findOne({ email: email.trim().toLowerCase() })
 
 		if (!user) {
 			return res.status(400).json({ message: 'Invalid email or password' })
@@ -70,10 +93,11 @@ export const login = async (req, res) => {
 			_id: user._id,
 			fullName: user.fullName,
 			email: user.email,
-			profilePic: user.profilePic
+			profilePic: user.profilePic,
+			createdAt: user.createdAt
 		})
 	} catch (error) {
-		console.log('Error in login controller', error.message)
+		console.error('Error in login controller', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
@@ -90,7 +114,7 @@ export const logout = (req, res) => {
 		})
 		res.status(200).json({ message: 'Logged out successfully' })
 	} catch (error) {
-		console.log('Error in logout controller', error.message)
+		console.error('Error in logout controller', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }
@@ -100,7 +124,7 @@ export const updateProfile = async (req, res) => {
 		const { profilePic } = req.body
 		const userId = req.user._id
 
-		if (!profilePic) {
+		if (!isImageDataUrl(profilePic)) {
 			return res.status(400).json({ message: 'Please select an image' })
 		}
 
@@ -124,7 +148,7 @@ export const checkAuth = (req, res) => {
 	try {
 		res.status(200).json(req.user)
 	} catch (error) {
-		console.log('Error in checkAuth controller', error.message)
+		console.error('Error in checkAuth controller', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })
 	}
 }

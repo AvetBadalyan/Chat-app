@@ -1,15 +1,19 @@
+import mongoose from 'mongoose'
 import Message from '../models/message.model.js'
 import User from '../models/user.model.js'
-
 import cloudinary from '../lib/cloudinary.js'
 import { getReceiverSocketId, io } from '../lib/socket.js'
+import { isImageDataUrl } from '../lib/utils.js'
+
+const MAX_MESSAGE_LENGTH = 2000
+const MAX_EMOJI_LENGTH = 8
 
 export const getUsersForSidebar = async (req, res) => {
 	try {
 		const loggedInUserId = req.user._id
 		const filteredUsers = await User.find({
 			_id: { $ne: loggedInUserId }
-		}).select('-password')
+		}).select('fullName profilePic') // never send other users' emails
 
 		res.status(200).json(filteredUsers)
 	} catch (error) {
@@ -22,6 +26,10 @@ export const getMessages = async (req, res) => {
 	try {
 		const { id: userToChatId } = req.params
 		const myId = req.user._id
+
+		if (!mongoose.isValidObjectId(userToChatId)) {
+			return res.status(400).json({ message: 'Invalid user id' })
+		}
 
 		const messages = await Message.find({
 			$or: [
@@ -43,9 +51,28 @@ export const sendMessage = async (req, res) => {
 		const { id: receiverId } = req.params
 		const senderId = req.user._id
 
+		if (!mongoose.isValidObjectId(receiverId)) {
+			return res.status(400).json({ message: 'Invalid user id' })
+		}
+
+		if (image && !isImageDataUrl(image)) {
+			return res.status(400).json({ message: 'Please attach a valid image' })
+		}
+
 		// A message must contain at least text or an image.
 		if (!text?.trim() && !image) {
 			return res.status(400).json({ message: 'Message cannot be empty' })
+		}
+
+		if (text && text.length > MAX_MESSAGE_LENGTH) {
+			return res.status(400).json({
+				message: `Message must be at most ${MAX_MESSAGE_LENGTH} characters`
+			})
+		}
+
+		const receiverExists = await User.exists({ _id: receiverId })
+		if (!receiverExists) {
+			return res.status(404).json({ message: 'User not found' })
 		}
 
 		let imageUrl
@@ -87,8 +114,12 @@ export const addReaction = async (req, res) => {
 		const { emoji } = req.body
 		const userId = req.user._id
 
-		if (!emoji) {
-			return res.status(400).json({ message: 'Emoji is required' })
+		if (!mongoose.isValidObjectId(messageId)) {
+			return res.status(400).json({ message: 'Invalid message id' })
+		}
+
+		if (typeof emoji !== 'string' || !emoji || emoji.length > MAX_EMOJI_LENGTH) {
+			return res.status(400).json({ message: 'A valid emoji is required' })
 		}
 
 		const message = await Message.findById(messageId)

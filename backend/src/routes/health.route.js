@@ -12,14 +12,15 @@ const router = express.Router()
  * metadata only — no documents are scanned and nothing is written.
  *
  * 200 { ok: true }            on success
- * 500 { ok: false, error }    if the database is unreachable
+ * 500 { ok: false }           if the database is unreachable
  */
 router.get('/', async (_req, res) => {
 	try {
 		await User.estimatedDocumentCount()
 		res.status(200).json({ ok: true })
 	} catch (error) {
-		res.status(500).json({ ok: false, error: error.message })
+		console.error('Health check failed:', error.message)
+		res.status(500).json({ ok: false })
 	}
 })
 
