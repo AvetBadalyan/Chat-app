@@ -20,7 +20,7 @@ const Navbar = () => {
 						<div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
 							<MessageSquare className="size-5 text-primary" />
 						</div>
-						<h1 className="text-lg font-bold">Avetbook</h1>
+						<span className="text-lg font-bold">Avetbook</span>
 					</Link>
 
 					<div className="flex items-center gap-2">
@@ -44,6 +44,7 @@ const Navbar = () => {
 							<>
 								<Link
 									to="/profile"
+									aria-label="Profile"
 									className="btn btn-sm btn-ghost gap-2 hover:bg-base-content/10"
 								>
 									<User className="size-5" />
@@ -53,6 +54,7 @@ const Navbar = () => {
 								<button
 									className="btn btn-sm btn-ghost gap-2 hover:bg-base-content/10"
 									onClick={logout}
+									aria-label="Logout"
 								>
 									<LogOut className="size-5" />
 									<span className="hidden sm:inline">Logout</span>
@@ -61,6 +63,7 @@ const Navbar = () => {
 						) : (
 							<Link
 								to="/login"
+								aria-label="Sign In"
 								className="btn btn-sm btn-primary gap-2"
 							>
 								<LogIn className="size-4" />

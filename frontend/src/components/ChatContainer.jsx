@@ -73,6 +73,8 @@ const MessageReactions = ({
 					<button
 						key={emoji}
 						onClick={() => onAddReaction(emoji)}
+						aria-pressed={hasUserReacted}
+						aria-label={`${emoji} ${data.count}`}
 						className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm transition-all
               ${
 								hasUserReacted
@@ -92,10 +94,11 @@ const MessageReactions = ({
 						e.stopPropagation()
 						setOpenPickerId(isPickerOpen ? null : messageId)
 					}}
-					className="p-1 rounded-full hover:bg-base-content/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+					className="p-1 rounded-full hover:bg-base-content/10 transition-colors opacity-60 group-hover:opacity-100 focus-visible:opacity-100"
 					aria-label="Add reaction"
+					aria-expanded={isPickerOpen}
 				>
-					<SmilePlus className="size-4 text-base-content/50" />
+					<SmilePlus className="size-4 text-base-content/70" />
 				</button>
 				{isPickerOpen && (
 					<ReactionPicker
@@ -120,9 +123,6 @@ const ChatContainer = () => {
 	} = useChatStore()
 	const { authUser } = useAuthStore()
 	const messageEndRef = useRef(null)
-	// Track the id of the last message we've already animated so we only
-	// animate truly new arrivals, not every reaction update or re-render.
-	const lastAnimatedIdRef = useRef(null)
 	const [openPickerId, setOpenPickerId] = useState(null)
 
 	const isSelectedUserTyping = selectedUser && typingUsers[selectedUser._id]
@@ -150,18 +150,20 @@ const ChatContainer = () => {
 			<div className="flex-1 flex flex-col overflow-auto">
 				<ChatHeader />
 				<MessageSkeleton />
-				<MessageInput />
+				<MessageInput key={selectedUser._id} />
 			</div>
 		)
 	}
-
-	const lastMessageId = messages.at(-1)?._id
 
 	return (
 		<div className="flex-1 flex flex-col overflow-auto">
 			<ChatHeader />
 
-			<div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+			<div
+				role="log"
+				aria-label="Messages"
+				className="flex-1 overflow-y-auto p-4 flex flex-col gap-4"
+			>
 				{messages.length === 0 ? (
 					<div className="flex flex-col items-center justify-center h-full text-center animate-fade-in">
 						<div className="text-4xl mb-4">👋</div>
@@ -171,19 +173,18 @@ const ChatContainer = () => {
 						</p>
 					</div>
 				) : (
-					messages.map(message => {
+					messages.map((message, index) => {
 						const isOwnMessage = message.senderId === authUser._id
-						// Only animate the newest message (the one just appended).
-						// Reaction updates must not re-trigger the entrance animation.
-						const isNewest = message._id === lastMessageId
-						const shouldAnimate =
-							isNewest && message._id !== lastAnimatedIdRef.current
-						if (shouldAnimate) lastAnimatedIdRef.current = message._id
+
+						// Only the newest message slides in. A CSS animation plays only
+						// when the element is first added, so reaction updates and older
+						// messages do not replay it.
+						const isNewest = index === messages.length - 1
 
 						return (
 							<div
 								key={message._id}
-								className={`chat group ${isOwnMessage ? 'chat-end' : 'chat-start'} ${shouldAnimate ? 'animate-slide-up' : ''}`}
+								className={`chat group ${isNewest ? 'animate-slide-up' : ''} ${isOwnMessage ? 'chat-end' : 'chat-start'}`}
 							>
 								<div className="chat-image avatar">
 									<div className="size-10 rounded-full border border-base-content/10">
@@ -193,12 +194,14 @@ const ChatContainer = () => {
 													? authUser.profilePic || '/avatar.png'
 													: selectedUser.profilePic || '/avatar.png'
 											}
-											alt="profile pic"
+											alt={
+												isOwnMessage ? authUser.fullName : selectedUser.fullName
+											}
 										/>
 									</div>
 								</div>
 								<div className="chat-header mb-1">
-									<time className="text-xs opacity-50 ml-1">
+									<time className="text-xs opacity-70 ml-1">
 										{formatMessageTime(message.createdAt)}
 									</time>
 								</div>
@@ -210,7 +213,7 @@ const ChatContainer = () => {
 											className="sm:max-w-[200px] rounded-md mb-2"
 										/>
 									)}
-									{message.text && <p>{message.text}</p>}
+									{message.text && <p className="break-words">{message.text}</p>}
 								</div>
 								<div
 									className={`chat-footer ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
@@ -235,7 +238,8 @@ const ChatContainer = () => {
 				<div ref={messageEndRef} />
 			</div>
 
-			<MessageInput />
+			{/* key: a new chat starts with an empty message box */}
+			<MessageInput key={selectedUser._id} />
 		</div>
 	)
 }

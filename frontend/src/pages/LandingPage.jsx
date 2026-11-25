@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom'
 import { useAuthStore } from '../store/useAuthStore'
 
 // Hook for intersection observer animations
-const useInView = (options = {}) => {
+const useInView = () => {
 	const ref = useRef(null)
 	const [isInView, setIsInView] = useState(false)
 
@@ -26,7 +26,7 @@ const useInView = (options = {}) => {
 					observer.unobserve(entry.target)
 				}
 			},
-			{ threshold: 0.1, ...options }
+			{ threshold: 0.1 }
 		)
 
 		if (ref.current) {
@@ -34,7 +34,6 @@ const useInView = (options = {}) => {
 		}
 
 		return () => observer.disconnect()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	return [ref, isInView]
@@ -45,24 +44,33 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = '' }) => {
 	const [count, setCount] = useState(0)
 	const [ref, isInView] = useInView()
 
+	// Users who asked for less motion see the final number without counting up
+	const reducedMotion = window.matchMedia(
+		'(prefers-reduced-motion: reduce)'
+	).matches
+
 	useEffect(() => {
-		if (!isInView) return
+		if (!isInView || reducedMotion) return
 
 		let startTime
+		let frameId
 		const animate = currentTime => {
 			if (!startTime) startTime = currentTime
 			const progress = Math.min((currentTime - startTime) / duration, 1)
 			setCount(Math.floor(progress * end))
 			if (progress < 1) {
-				requestAnimationFrame(animate)
+				frameId = requestAnimationFrame(animate)
 			}
 		}
-		requestAnimationFrame(animate)
-	}, [isInView, end, duration])
+		frameId = requestAnimationFrame(animate)
+
+		// Stop the animation if the component is removed
+		return () => cancelAnimationFrame(frameId)
+	}, [isInView, reducedMotion, end, duration])
 
 	return (
 		<span ref={ref}>
-			{count}
+			{reducedMotion ? end : count}
 			{suffix}
 		</span>
 	)
@@ -157,7 +165,7 @@ const LandingPage = () => {
 						className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8 transition-all duration-1000 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
 					>
 						<Sparkles className="size-4 text-primary animate-pulse" />
-						<span className="text-sm font-medium bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+						<span className="text-sm font-medium text-primary">
 							Real-time chat powered by Socket.io
 						</span>
 					</div>
@@ -180,20 +188,20 @@ const LandingPage = () => {
 					>
 						Connect with{' '}
 						<span className="relative">
-							<span className="bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_auto] animate-gradient bg-clip-text text-transparent">
+							<span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
 								Avetbook
 							</span>
-							<span className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_auto] animate-gradient rounded-full" />
+							<span className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-full" />
 						</span>
 					</h1>
 
 					{/* Subtitle with subtle animation */}
 					<p
-						className={`text-xl md:text-2xl text-base-content/60 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-1000 delay-500 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+						className={`text-xl md:text-2xl text-base-content/70 mb-10 max-w-2xl mx-auto leading-relaxed transition-all duration-1000 delay-500 ${heroInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
 					>
 						A modern real-time chat application built with React, Socket.io, and
 						Node.js. Experience{' '}
-						<span className="text-primary animate-pulse">seamless</span>{' '}
+						<span className="text-primary">seamless</span>{' '}
 						messaging with a beautiful interface.
 					</p>
 
@@ -203,7 +211,7 @@ const LandingPage = () => {
 					>
 						<button
 							onClick={handleDemoLogin}
-							className="group btn btn-primary btn-lg gap-2 shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 transition-all duration-300 animate-glow"
+							className="group btn btn-primary btn-lg gap-2 shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 hover:scale-105 transition-all duration-300"
 							disabled={isLoggingIn}
 						>
 							{isLoggingIn ? (
@@ -250,7 +258,7 @@ const LandingPage = () => {
 						className={`mt-16 transition-all duration-1000 delay-1000 ${heroInView ? 'opacity-100' : 'opacity-0'}`}
 					>
 						<div className="flex flex-col items-center gap-2">
-							<span className="text-xs text-base-content/40 animate-pulse">
+							<span className="text-xs text-base-content/70">
 								Scroll to explore
 							</span>
 							<div className="w-6 h-10 border-2 border-base-content/30 rounded-full flex justify-center pt-2 animate-bounce-slow">
@@ -267,9 +275,9 @@ const LandingPage = () => {
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
 						{[
 							{ value: 2, suffix: '', label: 'Polished Themes' },
-							{ value: 100, suffix: '%', label: 'Real-time' },
 							{ value: 6, suffix: '', label: 'Emoji Reactions' },
-							{ value: 24, suffix: '/7', label: 'Always Online' }
+							{ value: 7, suffix: '', label: 'Live Socket Events' },
+							{ value: 1, suffix: '', label: 'Click to Try the Demo' }
 						].map((stat, i) => (
 							<div
 								key={i}
@@ -281,7 +289,7 @@ const LandingPage = () => {
 										suffix={stat.suffix}
 									/>
 								</div>
-								<div className="text-base-content/60 group-hover:text-primary transition-colors duration-300">
+								<div className="text-base-content/70 group-hover:text-primary transition-colors duration-300">
 									{stat.label}
 								</div>
 							</div>
@@ -302,7 +310,7 @@ const LandingPage = () => {
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
 							Powerful <span className="text-primary">Features</span>
 						</h2>
-						<p className="text-base-content/60 max-w-2xl mx-auto text-lg">
+						<p className="text-base-content/70 max-w-2xl mx-auto text-lg">
 							Built with modern technologies and best practices for a smooth
 							user experience.
 						</p>
@@ -322,12 +330,12 @@ const LandingPage = () => {
 
 								<div className="card-body relative z-10">
 									<div className="size-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 group-hover:shadow-lg group-hover:shadow-primary/20">
-										<feature.icon className="size-7 text-primary group-hover:animate-bounce-once" />
+										<feature.icon className="size-7 text-primary" />
 									</div>
 									<h3 className="card-title text-xl group-hover:text-primary transition-colors duration-300">
 										{feature.title}
 									</h3>
-									<p className="text-base-content/60 group-hover:text-base-content/80 transition-colors duration-300">
+									<p className="text-base-content/70 group-hover:text-base-content/80 transition-colors duration-300">
 										{feature.description}
 									</p>
 								</div>
@@ -352,7 +360,7 @@ const LandingPage = () => {
 						<h2 className="text-4xl md:text-5xl font-bold mb-4">
 							Clean & <span className="text-primary">Modern</span> Interface
 						</h2>
-						<p className="text-base-content/60 max-w-2xl mx-auto text-lg">
+						<p className="text-base-content/70 max-w-2xl mx-auto text-lg">
 							A responsive design that works beautifully on desktop and mobile
 							devices.
 						</p>
@@ -475,9 +483,9 @@ const LandingPage = () => {
 				>
 					<h2 className="text-4xl md:text-5xl font-bold mb-6">
 						Ready to start{' '}
-						<span className="text-primary animate-pulse">chatting</span>?
+						<span className="text-primary">chatting</span>?
 					</h2>
-					<p className="text-base-content/60 mb-10 text-lg">
+					<p className="text-base-content/70 mb-10 text-lg">
 						Try the demo account instantly or create your own account to get
 						started.
 					</p>
@@ -518,11 +526,11 @@ const LandingPage = () => {
 						</div>
 						<span className="font-bold text-xl">Avetbook</span>
 					</div>
-					<p className="text-base-content/60 mb-2">
+					<p className="text-base-content/70 mb-2">
 						A portfolio project demonstrating real-time web application
 						development.
 					</p>
-					<p className="text-base-content/40 text-sm">
+					<p className="text-base-content/60 text-sm">
 						Built with React, Node.js, Socket.io, MongoDB, and Tailwind CSS
 					</p>
 				</div>

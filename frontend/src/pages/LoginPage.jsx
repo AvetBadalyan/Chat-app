@@ -39,7 +39,10 @@ const LoginPage = () => {
 						className="space-y-6"
 					>
 						<div className="form-control">
-							<label className="label">
+							<label
+								htmlFor="login-email"
+								className="label"
+							>
 								<span className="label-text font-medium">Email</span>
 							</label>
 							<div className="relative">
@@ -48,8 +51,11 @@ const LoginPage = () => {
 								</div>
 								<input
 									type="email"
-									className="input input-bordered w-full pl-10"
+									className="input input-bordered w-full pl-10 text-base"
 									placeholder="you@example.com"
+									id="login-email"
+									autoComplete="email"
+									required
 									value={formData.email}
 									onChange={e =>
 										setFormData({ ...formData, email: e.target.value })
@@ -59,7 +65,10 @@ const LoginPage = () => {
 						</div>
 
 						<div className="form-control">
-							<label className="label">
+							<label
+								htmlFor="login-password"
+								className="label"
+							>
 								<span className="label-text font-medium">Password</span>
 							</label>
 							<div className="relative">
@@ -68,8 +77,11 @@ const LoginPage = () => {
 								</div>
 								<input
 									type={showPassword ? 'text' : 'password'}
-									className="input input-bordered w-full pl-10"
+									className="input input-bordered w-full pl-10 text-base"
 									placeholder="••••••••"
+									id="login-password"
+									autoComplete="current-password"
+									required
 									value={formData.password}
 									onChange={e =>
 										setFormData({ ...formData, password: e.target.value })
@@ -82,9 +94,9 @@ const LoginPage = () => {
 									aria-label={showPassword ? 'Hide password' : 'Show password'}
 								>
 									{showPassword ? (
-										<EyeOff className="size-5 text-base-content/40" />
+										<EyeOff className="size-5 text-base-content/70" />
 									) : (
-										<Eye className="size-5 text-base-content/40" />
+										<Eye className="size-5 text-base-content/70" />
 									)}
 								</button>
 							</div>
@@ -98,7 +110,7 @@ const LoginPage = () => {
 							{isLoggingIn ? (
 								<>
 									<Loader2 className="size-5 animate-spin" />
-									Loading...
+									Signing in…
 								</>
 							) : (
 								'Sign in'

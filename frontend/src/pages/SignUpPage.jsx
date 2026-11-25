@@ -67,7 +67,10 @@ const SignUpPage = () => {
 						className="space-y-6"
 					>
 						<div className="form-control">
-							<label className="label">
+							<label
+								htmlFor="signup-fullName"
+								className="label"
+							>
 								<span className="label-text font-medium">Full Name</span>
 							</label>
 							<div className="relative">
@@ -76,8 +79,11 @@ const SignUpPage = () => {
 								</div>
 								<input
 									type="text"
-									className="input input-bordered w-full pl-10"
+									className="input input-bordered w-full pl-10 text-base"
 									placeholder="John Doe"
+									id="signup-fullName"
+									autoComplete="name"
+									required
 									value={formData.fullName}
 									onChange={e =>
 										setFormData({ ...formData, fullName: e.target.value })
@@ -87,7 +93,10 @@ const SignUpPage = () => {
 						</div>
 
 						<div className="form-control">
-							<label className="label">
+							<label
+								htmlFor="signup-email"
+								className="label"
+							>
 								<span className="label-text font-medium">Email</span>
 							</label>
 							<div className="relative">
@@ -96,8 +105,11 @@ const SignUpPage = () => {
 								</div>
 								<input
 									type="email"
-									className="input input-bordered w-full pl-10"
+									className="input input-bordered w-full pl-10 text-base"
 									placeholder="you@example.com"
+									id="signup-email"
+									autoComplete="email"
+									required
 									value={formData.email}
 									onChange={e =>
 										setFormData({ ...formData, email: e.target.value })
@@ -107,7 +119,10 @@ const SignUpPage = () => {
 						</div>
 
 						<div className="form-control">
-							<label className="label">
+							<label
+								htmlFor="signup-password"
+								className="label"
+							>
 								<span className="label-text font-medium">Password</span>
 							</label>
 							<div className="relative">
@@ -116,8 +131,12 @@ const SignUpPage = () => {
 								</div>
 								<input
 									type={showPassword ? 'text' : 'password'}
-									className="input input-bordered w-full pl-10"
+									className="input input-bordered w-full pl-10 text-base"
 									placeholder="••••••••"
+									id="signup-password"
+									autoComplete="new-password"
+									required
+									minLength={6}
 									value={formData.password}
 									onChange={e =>
 										setFormData({ ...formData, password: e.target.value })
@@ -130,9 +149,9 @@ const SignUpPage = () => {
 									aria-label={showPassword ? 'Hide password' : 'Show password'}
 								>
 									{showPassword ? (
-										<EyeOff className="size-5 text-base-content/40" />
+										<EyeOff className="size-5 text-base-content/70" />
 									) : (
-										<Eye className="size-5 text-base-content/40" />
+										<Eye className="size-5 text-base-content/70" />
 									)}
 								</button>
 							</div>
@@ -146,7 +165,7 @@ const SignUpPage = () => {
 							{isSigningUp ? (
 								<>
 									<Loader2 className="size-5 animate-spin" />
-									Loading...
+									Creating account…
 								</>
 							) : (
 								'Create Account'

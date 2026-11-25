@@ -6,6 +6,7 @@ import { useChatStore } from '../store/useChatStore'
 const MessageInput = () => {
 	const [text, setText] = useState('')
 	const [imagePreview, setImagePreview] = useState(null)
+	const [isSending, setIsSending] = useState(false)
 	const fileInputRef = useRef(null)
 	const textareaRef = useRef(null)
 	const typingTimeoutRef = useRef(null)
@@ -71,7 +72,8 @@ const MessageInput = () => {
 
 	const handleSendMessage = async e => {
 		e?.preventDefault()
-		if (!text.trim() && !imagePreview) return
+		// Ignore empty messages and a second send while one is in progress
+		if ((!text.trim() && !imagePreview) || isSending) return
 
 		// Stop typing indicator when sending
 		if (typingTimeoutRef.current) {
@@ -79,21 +81,22 @@ const MessageInput = () => {
 		}
 		emitStopTyping()
 
-		try {
-			await sendMessage({
-				text: text.trim(),
-				image: imagePreview
-			})
+		setIsSending(true)
+		const wasSent = await sendMessage({
+			text: text.trim(),
+			image: imagePreview
+		})
+		setIsSending(false)
 
-			// Clear form and reset textarea height
-			setText('')
-			setImagePreview(null)
-			if (fileInputRef.current) fileInputRef.current.value = ''
-			if (textareaRef.current) {
-				textareaRef.current.style.height = 'auto'
-			}
-		} catch (error) {
-			console.error('Failed to send message:', error)
+		// Keep the text and image if sending failed, so the user can retry
+		if (!wasSent) return
+
+		// Clear form and reset textarea height
+		setText('')
+		setImagePreview(null)
+		if (fileInputRef.current) fileInputRef.current.value = ''
+		if (textareaRef.current) {
+			textareaRef.current.style.height = 'auto'
 		}
 	}
 
@@ -149,8 +152,9 @@ const MessageInput = () => {
 				<div className="flex-1 flex gap-2">
 					<textarea
 						ref={textareaRef}
-						className="w-full textarea rounded-lg resize-none min-h-[44px] max-h-32 py-3 leading-tight bg-base-200/50 border border-base-content/10 focus:border-primary/30 focus:bg-base-200 overflow-y-auto"
+						className="w-full textarea rounded-lg resize-none min-h-[44px] max-h-32 py-3 leading-tight text-base bg-base-200/50 border border-base-content/10 focus:border-primary/30 focus:bg-base-200 overflow-y-auto"
 						placeholder="Type a message..."
+						aria-label="Message"
 						value={text}
 						onChange={handleTextChange}
 						onKeyDown={handleKeyDown}
@@ -177,7 +181,7 @@ const MessageInput = () => {
 				<button
 					type="submit"
 					className="btn btn-circle btn-primary"
-					disabled={!text.trim() && !imagePreview}
+					disabled={(!text.trim() && !imagePreview) || isSending}
 					aria-label="Send message"
 				>
 					<Send size={20} />

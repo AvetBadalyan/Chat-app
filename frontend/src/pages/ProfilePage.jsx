@@ -1,11 +1,9 @@
 import { Camera, Mail, User } from 'lucide-react'
-import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '../store/useAuthStore'
 
 const ProfilePage = () => {
 	const { authUser, isUpdatingProfile, updateProfile } = useAuthStore()
-	const [selectedImg, setSelectedImg] = useState(null)
 
 	const handleImageUpload = async e => {
 		const file = e.target.files[0]
@@ -24,10 +22,9 @@ const ProfilePage = () => {
 		const reader = new FileReader()
 		reader.readAsDataURL(file)
 
+		// The photo on screen changes only after the server has saved it
 		reader.onload = async () => {
-			const base64Image = reader.result
-			setSelectedImg(base64Image)
-			await updateProfile({ profilePic: base64Image })
+			await updateProfile({ profilePic: reader.result })
 		}
 	}
 
@@ -46,7 +43,7 @@ const ProfilePage = () => {
 					<div className="flex flex-col items-center gap-4">
 						<div className="relative">
 							<img
-								src={selectedImg || authUser?.profilePic || '/avatar.png'}
+								src={authUser?.profilePic || '/avatar.png'}
 								alt="Profile"
 								className="size-32 rounded-full object-cover border-4 border-base-content/10"
 							/>
@@ -55,14 +52,19 @@ const ProfilePage = () => {
 								className={`
 									absolute bottom-0 right-0 bg-primary hover:bg-primary/90
 									p-2 rounded-full cursor-pointer transition-all duration-200
+									focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-base-100
 									${isUpdatingProfile ? 'animate-pulse pointer-events-none' : ''}
 								`}
 							>
-								<Camera className="size-5 text-primary-content" />
+								<Camera
+									className="size-5 text-primary-content"
+									aria-hidden="true"
+								/>
+								<span className="sr-only">Change profile photo</span>
 								<input
 									type="file"
 									id="avatar-upload"
-									className="hidden"
+									className="sr-only"
 									accept="image/*"
 									onChange={handleImageUpload}
 									disabled={isUpdatingProfile}

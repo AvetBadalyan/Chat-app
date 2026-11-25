@@ -1,0 +1,8 @@
+# Avetbook
+
+> Avetbook is a portfolio project: a real-time chat app built with React, Node.js, Express, MongoDB and Socket.io.
+
+## Links
+
+- [Live demo](https://avetbook-chat-app.onrender.com/): landing page with a one-click demo account
+- [Source code](https://github.com/AvetBadalyan/Chat-app): README with setup steps and API overview

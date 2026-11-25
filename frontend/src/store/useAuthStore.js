@@ -22,8 +22,8 @@ export const useAuthStore = create((set, get) => ({
 
 			set({ authUser: res.data })
 			get().connectSocket()
-		} catch (error) {
-			console.log('Error in checkAuth:', error)
+		} catch {
+			// A failed check just means "not logged in"
 			set({ authUser: null })
 		} finally {
 			set({ isCheckingAuth: false })
@@ -79,7 +79,6 @@ export const useAuthStore = create((set, get) => ({
 			set({ authUser: res.data })
 			toast.success('Profile updated successfully')
 		} catch (error) {
-			console.log('error in update profile:', error)
 			toast.error(getErrorMessage(error))
 		} finally {
 			set({ isUpdatingProfile: false })
@@ -88,11 +87,11 @@ export const useAuthStore = create((set, get) => ({
 
 	connectSocket: () => {
 		const { authUser } = get()
-		if (!authUser || get().socket?.connected) return
+		// Stop if logged out, or if a socket exists (even one still connecting)
+		if (!authUser || get().socket) return
 
-		const socket = io(BASE_URL, {
-			query: { userId: authUser._id }
-		})
+		// The server reads the login cookie to know who is connecting
+		const socket = io(BASE_URL, { withCredentials: true })
 
 		// Store in state immediately so getState().socket is never null
 		// when the 'connect' event fires (even on a very fast connection).
@@ -113,7 +112,8 @@ export const useAuthStore = create((set, get) => ({
 	disconnectSocket: () => {
 		// Unsubscribe from chat events before disconnecting
 		useChatStore.getState().unsubscribeFromSocket()
-
-		if (get().socket?.connected) get().socket.disconnect()
+		get().socket?.disconnect()
+		// Forget the socket so the next login opens a fresh one
+		set({ socket: null, onlineUsers: [] })
 	}
 }))

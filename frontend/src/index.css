@@ -1,17 +1,16 @@
 @import 'tailwindcss';
+/* themes: false turns off DaisyUI's built-in themes. Only the two below are used. */
 @plugin "daisyui" {
-	themes:
-		avet-light --default,
-		avet-dark --prefersdark;
+	themes: false;
 }
 
 /* ============================================
-   Avetbook Custom Themes
+   Custom Themes (light is the default, dark is used when the system prefers dark)
    ============================================ */
 
 /* Light theme — clean slate with indigo-blue primary */
 @plugin "daisyui/theme" {
-	name: 'avet-light';
+	name: 'light';
 	default: true;
 	color-scheme: light;
 
@@ -58,7 +57,8 @@
 
 /* Dark theme — balanced dark slate (not too dark, not too gray) */
 @plugin "daisyui/theme" {
-	name: 'avet-dark';
+	name: 'dark';
+	prefersdark: true;
 	color-scheme: dark;
 
 	/* Backgrounds — balanced dark palette like Discord/Slack */
@@ -136,35 +136,26 @@ label,
 	}
 }
 
-/* Softer input styling */
+/* Input styling. The border is 50% of the text color so it keeps
+   enough contrast against the page (WCAG 1.4.11 asks for 3:1). */
 .input,
 .textarea,
 .select {
-	border-color: color-mix(
-		in oklch,
-		var(--color-base-content) 20%,
-		transparent
-	) !important;
+	border-color: color-mix(in oklch, var(--color-base-content) 50%, transparent);
 	background-color: color-mix(in oklch, var(--color-base-100) 70%, transparent);
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
-	outline: none !important;
-	border-color: color-mix(
-		in oklch,
-		var(--color-primary) 50%,
-		transparent
-	) !important;
-	box-shadow: 0 0 0 2px
-		color-mix(in oklch, var(--color-primary) 10%, transparent) !important;
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px
+		color-mix(in oklch, var(--color-primary) 30%, transparent);
 }
 
 /* Softer button styling */
 .btn {
-	border: none;
-	box-shadow: none;
 	transition-property:
 		background-color, border-color, box-shadow, opacity, color, transform;
 	transition-duration: 150ms;
@@ -185,17 +176,6 @@ label,
 		var(--color-base-content) 8%,
 		transparent
 	);
-}
-
-/* Soft shadow utility classes */
-.shadow-soft {
-	box-shadow: 0 2px 8px -2px
-		color-mix(in oklch, var(--color-base-content) 10%, transparent);
-}
-
-.shadow-soft-lg {
-	box-shadow: 0 4px 16px -4px
-		color-mix(in oklch, var(--color-base-content) 15%, transparent);
 }
 
 /* ============================================
@@ -222,17 +202,6 @@ label,
 	}
 }
 
-@keyframes slideIn {
-	from {
-		opacity: 0;
-		transform: translateX(-10px);
-	}
-	to {
-		opacity: 1;
-		transform: translateX(0);
-	}
-}
-
 @keyframes scaleIn {
 	from {
 		opacity: 0;
@@ -250,10 +219,6 @@ label,
 
 .animate-slide-up {
 	animation: slideUp 0.3s ease-out;
-}
-
-.animate-slide-in {
-	animation: slideIn 0.2s ease-out;
 }
 
 .animate-scale-in {
@@ -291,18 +256,6 @@ label,
 	}
 	50% {
 		transform: translateY(-4px);
-	}
-}
-
-@keyframes gradient-shift {
-	0% {
-		background-position: 0% center;
-	}
-	50% {
-		background-position: 100% center;
-	}
-	100% {
-		background-position: 0% center;
 	}
 }
 
@@ -390,18 +343,6 @@ label,
 	}
 }
 
-@keyframes glow-pulse {
-	0%,
-	100% {
-		box-shadow: 0 0 20px
-			color-mix(in oklch, var(--color-primary) 30%, transparent);
-	}
-	50% {
-		box-shadow: 0 0 30px
-			color-mix(in oklch, var(--color-primary) 50%, transparent);
-	}
-}
-
 @keyframes pulse-slow {
 	0%,
 	100% {
@@ -443,9 +384,6 @@ label,
 .animate-float-subtle {
 	animation: float-subtle 3s ease-in-out infinite;
 }
-.animate-gradient {
-	animation: gradient-shift 4s ease infinite;
-}
 .animate-scroll-dot {
 	animation: scroll-dot 2s ease-in-out infinite;
 }
@@ -466,9 +404,6 @@ label,
 }
 .animate-bounce-slow {
 	animation: bounce-slow 2s ease-in-out infinite;
-}
-.animate-glow {
-	animation: glow-pulse 2s ease-in-out infinite;
 }
 .animate-pulse-slow {
 	animation: pulse-slow 4s ease-in-out infinite;

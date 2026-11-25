@@ -9,8 +9,8 @@ export const useChatStore = create((set, get) => ({
 	selectedUser: null,
 	isUsersLoading: false,
 	isMessagesLoading: false,
-	typingUsers: {}, // { odvrčt123: true } - tracks who is typing
-	unreadCounts: {}, // { odvrčt123: 2 } - tracks unread message counts per user
+	typingUsers: {}, // { userId: true } - tracks who is typing
+	unreadCounts: {}, // { userId: 2 } - tracks unread message counts per user
 
 	getUsers: async () => {
 		set({ isUsersLoading: true })
@@ -28,24 +28,37 @@ export const useChatStore = create((set, get) => ({
 		set({ isMessagesLoading: true })
 		try {
 			const res = await axiosInstance.get(`/messages/${userId}`)
-			set({ messages: res.data })
+			// Ignore this answer if the user already opened a different chat
+			if (get().selectedUser?._id === userId) {
+				set({ messages: res.data })
+			}
 		} catch (error) {
 			toast.error(getErrorMessage(error))
 		} finally {
-			set({ isMessagesLoading: false })
+			// An older request must not hide the skeleton of a newer one
+			if (get().selectedUser?._id === userId) {
+				set({ isMessagesLoading: false })
+			}
 		}
 	},
 
+	// Returns true when the message was sent, false when it failed
 	sendMessage: async messageData => {
-		const { selectedUser, messages } = get()
+		const { selectedUser } = get()
 		try {
 			const res = await axiosInstance.post(
 				`/messages/send/${selectedUser._id}`,
 				messageData
 			)
-			set({ messages: [...messages, res.data] })
+			// Read the latest messages now (new ones may have arrived while sending),
+			// and only add it if the same chat is still open.
+			if (get().selectedUser?._id === selectedUser._id) {
+				set({ messages: [...get().messages, res.data] })
+			}
+			return true
 		} catch (error) {
 			toast.error(getErrorMessage(error))
+			return false
 		}
 	},
 
@@ -150,18 +163,29 @@ export const useChatStore = create((set, get) => ({
 	},
 
 	setSelectedUser: selectedUser => {
+		// Clicking the chat that is already open changes nothing
+		if (selectedUser && selectedUser._id === get().selectedUser?._id) return
+
 		// Clear unread count when selecting a user
 		if (selectedUser) {
 			get().clearUnreadCount(selectedUser._id)
 		}
-		set({ selectedUser, typingUsers: {} })
+		// Clear the old chat right away so it is never shown inside the new one
+		set({
+			selectedUser,
+			messages: [],
+			isMessagesLoading: Boolean(selectedUser),
+			typingUsers: {}
+		})
 	},
 
 	// Called on logout to wipe all conversation state
 	resetState: () => {
 		set({
 			messages: [],
+			users: [],
 			selectedUser: null,
+			isMessagesLoading: false,
 			typingUsers: {},
 			unreadCounts: {}
 		})

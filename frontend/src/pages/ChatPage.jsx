@@ -7,9 +7,10 @@ const ChatPage = () => {
 	const { selectedUser } = useChatStore()
 
 	return (
-		<div className="h-screen bg-base-200">
+		<div className="h-dvh bg-base-200">
+			<h1 className="sr-only">Avetbook chat</h1>
 			<div className="flex items-center justify-center pt-20 px-2 sm:px-4">
-				<div className="bg-base-100 rounded-lg shadow-xl w-full max-w-6xl h-[calc(100vh-8rem)]">
+				<div className="bg-base-100 rounded-lg shadow-xl w-full max-w-6xl h-[calc(100dvh-8rem)]">
 					<div className="flex h-full rounded-lg overflow-hidden">
 						{/*
 							Responsive layout:
@@ -18,7 +19,7 @@ const ChatPage = () => {
 							- Desktop (lg+): show both side by side.
 						*/}
 						<div
-							className={`${selectedUser ? 'hidden' : 'flex'} lg:flex h-full`}
+							className={`${selectedUser ? 'hidden' : 'flex'} lg:flex h-full w-full lg:w-auto`}
 						>
 							<Sidebar />
 						</div>

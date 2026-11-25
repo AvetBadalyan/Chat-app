@@ -57,7 +57,7 @@ const Sidebar = () => {
 						/>
 						<span className="text-sm">Show online only</span>
 					</label>
-					<span className="text-xs text-base-content/50">
+					<span className="text-xs text-base-content/70">
 						({otherOnlineCount} online)
 					</span>
 				</div>
@@ -71,6 +71,7 @@ const Sidebar = () => {
 						<button
 							key={user._id}
 							onClick={() => setSelectedUser(user)}
+							aria-current={selectedUser?._id === user._id}
 							className={`
                 w-full p-3 flex items-center gap-3
                 transition-colors animate-fade-in
@@ -84,7 +85,7 @@ const Sidebar = () => {
 							<div className="relative">
 								<img
 									src={user.profilePic || '/avatar.png'}
-									alt={user.fullName}
+									alt=""
 									className="size-12 object-cover rounded-full"
 								/>
 								{onlineUsers.includes(user._id) && (
@@ -115,7 +116,7 @@ const Sidebar = () => {
 				})}
 
 				{filteredUsers.length === 0 && (
-					<div className="text-center text-base-content/50 py-4">
+					<div className="text-center text-base-content/70 py-4">
 						{showOnlineOnly ? 'No online users' : 'No contacts yet'}
 					</div>
 				)}
