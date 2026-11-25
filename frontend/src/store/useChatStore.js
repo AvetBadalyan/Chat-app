@@ -55,6 +55,7 @@ export const useChatStore = create((set, get) => ({
 			if (get().selectedUser?._id === selectedUser._id) {
 				set({ messages: [...get().messages, res.data] })
 			}
+			get().bumpContact(selectedUser._id)
 			return true
 		} catch (error) {
 			toast.error(getErrorMessage(error))
@@ -69,6 +70,18 @@ export const useChatStore = create((set, get) => ({
 		} catch (error) {
 			toast.error(getErrorMessage(error))
 		}
+	},
+
+	// Remember "now" as the latest message time of a contact, so that
+	// contact moves to the top of the list.
+	bumpContact: contactId => {
+		set({
+			users: get().users.map(user =>
+				user._id === contactId
+					? { ...user, lastMessageAt: new Date().toISOString() }
+					: user
+			)
+		})
 	},
 
 	// Subscribe to all socket events. Safe to call on every `connect`
@@ -100,6 +113,8 @@ export const useChatStore = create((set, get) => ({
 					}
 				})
 			}
+
+			get().bumpContact(newMessage.senderId)
 		})
 
 		// Listen for reaction updates

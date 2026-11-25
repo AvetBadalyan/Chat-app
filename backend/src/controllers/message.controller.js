@@ -11,11 +11,33 @@ const MAX_EMOJI_LENGTH = 8
 export const getUsersForSidebar = async (req, res) => {
 	try {
 		const loggedInUserId = req.user._id
-		const filteredUsers = await User.find({
+		const users = await User.find({
 			_id: { $ne: loggedInUserId }
-		}).select('fullName profilePic') // never send other users' emails
+		})
+			.select('fullName profilePic') // never send other users' emails
+			.lean()
 
-		res.status(200).json(filteredUsers)
+		// Newest first, so the first message we see for each contact is the latest
+		const myMessages = await Message.find({
+			$or: [{ senderId: loggedInUserId }, { receiverId: loggedInUserId }]
+		}).sort({ createdAt: -1 })
+
+		// lastMessageAt = { contactId: time of the latest message with that contact }
+		const lastMessageAt = {}
+		for (const message of myMessages) {
+			const iSentIt = String(message.senderId) === String(loggedInUserId)
+			const contactId = String(iSentIt ? message.receiverId : message.senderId)
+			if (!lastMessageAt[contactId]) {
+				lastMessageAt[contactId] = message.createdAt
+			}
+		}
+
+		const usersWithLastMessage = users.map(user => ({
+			...user,
+			lastMessageAt: lastMessageAt[String(user._id)] || null
+		}))
+
+		res.status(200).json(usersWithLastMessage)
 	} catch (error) {
 		console.error('Error in getUsersForSidebar: ', error.message)
 		res.status(500).json({ message: 'Something went wrong. Please try again.' })

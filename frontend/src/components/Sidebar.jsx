@@ -14,7 +14,7 @@ const Sidebar = () => {
 		unreadCounts
 	} = useChatStore()
 
-	const { onlineUsers } = useAuthStore()
+	const { authUser, onlineUsers } = useAuthStore()
 	const [showOnlineOnly, setShowOnlineOnly] = useState(false)
 
 	useEffect(() => {
@@ -25,11 +25,11 @@ const Sidebar = () => {
 		? users.filter(user => onlineUsers.includes(user._id))
 		: users
 
-	// Sort users: those with unread messages first
+	// Newest conversation first. Contacts with no messages keep their order at the end.
 	const sortedUsers = [...filteredUsers].sort((a, b) => {
-		const unreadA = unreadCounts[a._id] || 0
-		const unreadB = unreadCounts[b._id] || 0
-		return unreadB - unreadA
+		const timeA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0
+		const timeB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0
+		return timeB - timeA
 	})
 
 	// Count online users from the contacts list (excludes the logged-in user)
@@ -46,6 +46,9 @@ const Sidebar = () => {
 					<Users className="size-6" />
 					<span className="font-medium">Contacts</span>
 				</div>
+				<p className="mt-1 text-xs text-base-content/70 truncate">
+					Signed in as {authUser.fullName}
+				</p>
 				{/* Online filter toggle */}
 				<div className="mt-3 flex items-center gap-2">
 					<label className="cursor-pointer flex items-center gap-2">
